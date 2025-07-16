@@ -1,32 +1,155 @@
 const reviewModel = require("../models/reviewModel");
 const BaseResponse = require("./BaseResponse");
 
+// module.exports.GetAllReview = async (req, res) => {
+//   const response = new BaseResponse();
+//   try {
+//     const { keySearch, page = 1, pageSize = 10, sortField = "createdAt", sortOrder = "desc" } = req.body;
+
+//     const filter = {};
+//     if (keySearch) {
+//       filter.$or = [
+//         { comment: { $regex: keySearch, $options: "i" } },
+//         // nếu cần tìm theo userId hoặc productId string
+//         { userId: { $regex: keySearch, $options: "i" } },
+//         { productId: { $regex: keySearch, $options: "i" } },
+//       ];
+//     }
+
+//     const sortDirection = sortOrder.toLowerCase() === "asc" ? 1 : -1;
+//     const sortOptions = { [sortField]: sortDirection };
+
+//     const totalRecords = await reviewModel.countDocuments(filter);
+
+//     const data = await reviewModel.find(filter)
+//       .populate("userId", "fullName")
+//       .populate("productId")
+//       .sort(sortOptions)
+//       .skip((page - 1) * pageSize)
+//       .limit(parseInt(pageSize));
+
+//     response.success = true;
+//     response.data = data;
+//     response.metaData = {
+//       totalRecords,
+//       totalPages: Math.ceil(totalRecords / pageSize),
+//       currentPage: parseInt(page),
+//       pageSize: parseInt(pageSize),
+//     };
+
+//     res.json(response);
+//   } catch (error) {
+//     response.success = false;
+//     response.message = error.toString();
+//     res.status(500).json(response);
+//   }
+// };
+
 module.exports.GetAllReview = async (req, res) => {
   const response = new BaseResponse();
   try {
-    const { keySearch, page = 1, pageSize = 10, sortField = "createdAt", sortOrder = "desc" } = req.body;
+    const {
+      keySearch,
+      page = 1,
+      pageSize = 10,
+      sortField = "createdAt",
+      sortOrder = "desc"
+    } = req.body;
 
-    const filter = {};
+    const matchStage = {};
+
+    // Nếu có tìm kiếm
     if (keySearch) {
-      filter.$or = [
-        { comment: { $regex: keySearch, $options: "i" } },
-        // nếu cần tìm theo userId hoặc productId string
-        { userId: { $regex: keySearch, $options: "i" } },
-        { productId: { $regex: keySearch, $options: "i" } },
+      const regex = new RegExp(keySearch, "i");
+      matchStage.$or = [
+        { comment: { $regex: regex } },
+        { "user.fullName": { $regex: regex } },
+        { "product.name": { $regex: regex } }
       ];
     }
 
+    const skip = (page - 1) * pageSize;
     const sortDirection = sortOrder.toLowerCase() === "asc" ? 1 : -1;
-    const sortOptions = { [sortField]: sortDirection };
 
-    const totalRecords = await reviewModel.countDocuments(filter);
+    const aggregatePipeline = [
+      // JOIN product
+      {
+        $lookup: {
+          from: "products",
+          localField: "productId",
+          foreignField: "_id",
+          as: "product"
+        }
+      },
+      { $unwind: { path: "$product", preserveNullAndEmptyArrays: true } },
+      { $addFields: { productName: "$product.name" } },
 
-    const data = await reviewModel.find(filter)
-      .populate("userId", "fullName")
-      .populate("productId")
-      .sort(sortOptions)
-      .skip((page - 1) * pageSize)
-      .limit(parseInt(pageSize));
+      // JOIN user
+      {
+        $lookup: {
+          from: "users",
+          localField: "userId",
+          foreignField: "_id",
+          as: "user"
+        }
+      },
+      { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } },
+      { $addFields: { userName: "$user.fullName" } },
+
+      // Nếu có tìm kiếm, đưa vào pipeline
+      ...(keySearch ? [{ $match: matchStage }] : []),
+
+      // Sort
+      { $sort: { [sortField]: sortDirection } },
+
+      // Phân trang
+      { $skip: skip },
+      { $limit: parseInt(pageSize) },
+
+      // Project chỉ field cần thiết
+      {
+        $project: {
+          userId: 1,
+          productId: 1,
+          rating: 1,
+          comment: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          userName: 1,
+          productName: 1
+        }
+      }
+    ];
+
+    const data = await reviewModel.aggregate(aggregatePipeline);
+
+    // Tính tổng bản ghi cho phân trang
+    const totalRecordsPipeline = [
+      // Same lookup như trên
+      {
+        $lookup: {
+          from: "products",
+          localField: "productId",
+          foreignField: "_id",
+          as: "product"
+        }
+      },
+      { $unwind: { path: "$product", preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: "users",
+          localField: "userId",
+          foreignField: "_id",
+          as: "user"
+        }
+      },
+      { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } },
+      ...(keySearch ? [{ $match: matchStage }] : []),
+      { $count: "total" }
+    ];
+
+    const countResult = await reviewModel.aggregate(totalRecordsPipeline);
+    const totalRecords = countResult[0]?.total || 0;
 
     response.success = true;
     response.data = data;
@@ -44,7 +167,6 @@ module.exports.GetAllReview = async (req, res) => {
     res.status(500).json(response);
   }
 };
-
 module.exports.GetAllReviewFK = async (req, res) => {
   const response = new BaseResponse();
   try {

@@ -20,7 +20,9 @@ const userSchema = new mongoose.Schema({
     avatar: {
         type: Object,
     },
-
+    role: { type: String, enum: ['User', 'Admin'], default: 'User' },
+    status: { type: String, enum: ['Active', 'UnActive'], default: 'Active' },
+    images: { type: Array, default: [] },
     accessToken: {
         type: String,
     },
@@ -29,4 +31,4 @@ const userSchema = new mongoose.Schema({
     }
 }, { timestamps: true })
 
-module.exports = mongoose.model("Users", userSchema)
+module.exports = mongoose.model("users", userSchema)

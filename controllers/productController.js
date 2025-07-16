@@ -141,13 +141,13 @@ module.exports.CreateProduct = async (req, res) => {
   const response = new BaseResponse();
   try {
 
-    const { name, price, categoryId, status, description } = req.body;
+    const { name, price, discount, categoryId, status, description, brand, stock, variants } = req.body;
 
 
 
     const imagePath = req.file ? `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}` : "";
     const newData = {
-      name, price, categoryId, status, description, images:
+      name, price, discount, categoryId, status, description, brand, stock, variants, images:
         req.file ?
           [
             {
@@ -179,58 +179,11 @@ module.exports.CreateProduct = async (req, res) => {
     res.status(500).json(response);
   }
 };
-module.exports.CreateProduct_UploadMulti = async (req, res) => {
-  const response = new BaseResponse();
-  try {
-
-    const { name, price, categoryId = null, status, description } = req.body;
-
-    const newData = {
-      //name, price, categoryId, status, description, images: []
-      name, price, categoryId: categoryId ? new ObjectId(categoryId) : null, status, description, images: []
-    }
-    var imagePaths = []
-
-    if (req.files && req.files.length > 0) {
-      imagePaths = req.files.map((file, index) => ({
-        imageAbsolutePath: `${req.protocol}://${req.get("host")}/uploads/${file.filename}`,
-        fileName: file.filename,
-        keyToDelete: path.join(__dirname, "..", file.path),
-        imageBase64String: "",
-        imageFile: null,
-        isNewUpload: false,
-        displayOrder: index
-
-      }));
-
-    }
-
-
-    newData.images = imagePaths;
-
-    //Truy vấn monggo
-    const result = await productModel.create(newData);
-    if (!result) {
-      response.success = false
-      response.message = 'An error occurred during the execution, please try again.'
-      return res.json(response);
-    }
-    response.success = true
-    response.data = result?._id
-    res.json(response);
-  } catch (error) {
-    response.success = false
-    response.message = error.toString()
-    res.status(500).json(response);
-  }
-};
-
-
 module.exports.UpdateProduct = async (req, res) => {
   const response = new BaseResponse();
   try {
     const { id } = req.params; // Lấy ID từ URL params
-    const { name, price, categoryId, status, description, oldImages = [], deleteImages = [] } = req.body; // Dữ liệu cập nhật
+    const { name, price, discount, categoryId, status, description, brand, stock, variants, oldImages = [], deleteImages = [] } = req.body; // Dữ liệu cập nhật
     const dataFindById = await productModel.findById(id);
     //Xư lý xóa ảnh deleteImages
 
@@ -301,11 +254,63 @@ module.exports.UpdateProduct = async (req, res) => {
   }
 };
 
+module.exports.CreateProduct_UploadMulti = async (req, res) => {
+  const response = new BaseResponse();
+  try {
+
+    const { name, price, categoryId = null, status, description, discount, stock, brand, variants } = req.body;
+    var _variants = []
+    try {
+      _variants = JSON.parse(variants)
+      _variants = _variants.filter(item => item != null)
+    } catch (error) {
+      _variants = []
+    }
+    const newData = {
+      //name, price,discount, categoryId, status, description,brand,stock,variants, images: []
+      name, price, categoryId: categoryId ? new ObjectId(categoryId) : null, status, description, discount, stock, brand, variants: _variants, images: []
+    }
+    var imagePaths = []
+
+    if (req.files && req.files.length > 0) {
+      imagePaths = req.files.map((file, index) => ({
+        imageAbsolutePath: `${req.protocol}://${req.get("host")}/uploads/${file.filename}`,
+        fileName: file.filename,
+        keyToDelete: path.join(__dirname, "..", file.path),
+        imageBase64String: "",
+        imageFile: null,
+        isNewUpload: false,
+        displayOrder: index
+
+      }));
+
+    }
+
+
+    newData.images = imagePaths;
+
+    //Truy vấn monggo
+    const result = await productModel.create(newData);
+    if (!result) {
+      response.success = false
+      response.message = 'An error occurred during the execution, please try again.'
+      return res.json(response);
+    }
+    response.success = true
+    response.data = result?._id
+    res.json(response);
+  } catch (error) {
+    response.success = false
+    response.message = error.toString()
+    res.status(500).json(response);
+  }
+};
+
 module.exports.UpdateProduct_UploadMulti = async (req, res) => {
   const response = new BaseResponse();
   try {
     const { id } = req.params; // Lấy ID từ URL params
-    const { name, price, categoryId = null, status, description, oldImages = [], deleteImages = [] } = req.body; // Dữ liệu cập nhật
+    const { name, price, categoryId = null, status, description, discount, stock, brand, variants, oldImages = [], deleteImages = [] } = req.body; // Dữ liệu cập nhật
     const dataFindById = await productModel.findById(id);
 
 
@@ -313,7 +318,7 @@ module.exports.UpdateProduct_UploadMulti = async (req, res) => {
     var imagePaths_v2 = []
     var _oldImages = []
     var _deleteImages = []
-
+    var _variants = []
     try {
       _oldImages = JSON.parse(oldImages)
       _oldImages = _oldImages.filter(item => item != null)
@@ -326,9 +331,15 @@ module.exports.UpdateProduct_UploadMulti = async (req, res) => {
     } catch (error) {
       _deleteImages = []
     }
+    try {
+      _variants = JSON.parse(variants)
+      _variants = _variants.filter(item => item != null)
+    } catch (error) {
+      _variants = []
+    }
 
     var updateData = {
-      name, price, categoryId: categoryId ? new ObjectId(categoryId) : null, status, description
+      name, price, categoryId: categoryId ? new ObjectId(categoryId) : null, status, description, discount, stock, brand, variants: _variants
     }
 
     //Xư lý xóa ảnh deleteImages

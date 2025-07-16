@@ -10,6 +10,10 @@ const todoRouter = require('./routers/todoRouter')
 const productRouter = require('./routers/productRouter')
 const categoryRouter = require('./routers/categoryRouter')
 const authRouter = require('./routers/authRouter')
+const userRouter = require("./routers/userRouter");
+const orderRouter = require("./routers/orderRouter");
+const reviewRouter = require("./routers/reviewRouter");
+const cartRouter = require("./routers/cartRouter");
 const { VerifyTokenMiddleware } = require('./controllers/authController')
 
 
@@ -37,6 +41,10 @@ app.use("/imports", express.static("imports"));
 app.use(todoRouter)
 app.use(productRouter)
 app.use(categoryRouter)
+app.use(userRouter);
+app.use(orderRouter);
+app.use(reviewRouter);
+app.use(cartRouter);
 app.use(authRouter)
 
 app.get("/", (req, res) => res.json({ response: "hello" }))

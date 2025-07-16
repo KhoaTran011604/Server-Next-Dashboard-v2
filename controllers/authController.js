@@ -242,9 +242,6 @@ exports.RefreshToken = async (req, res) => {
       response.message = "No refresh token provided";
       return res.status(401).json(response);
     }
-    console.log("=======refresh==========");
-
-    console.log("refreshToken", refreshToken);
 
 
     // Verify refresh token
@@ -300,10 +297,8 @@ exports.AuthVertify = (req, res) => {
   const authHeader = req.headers.authorization;
 
   const req_cookies = req.cookies;
-  console.log("tokenCookies", req_cookies);
 
   const token = authHeader && authHeader.split(' ')[1]; // Format: Bearer <token>
-  console.log("token", token);
 
   if (!token) return res.status(401).json({ ...response, message: "No token provided" });
 
@@ -319,7 +314,6 @@ exports.AuthVertify = (req, res) => {
       response.success = false;
       return res.status(403).json(response);
     }
-    console.log("decoded", decoded);
     req.user = decoded;
     response.success = true;
     response.data = decoded
@@ -399,7 +393,7 @@ exports.VerifyTokenMiddleware = (req, res, next) => {
       response.success = false;
       return res.status(403).json(response);
     }
-    console.log("token", decoded);
+
     req.user = decoded;
     next();
   });

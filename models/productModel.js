@@ -10,6 +10,7 @@ const _Schema = new mongoose.Schema(
             type: Number,
             default: false,
         },
+        discount: Number,
         categoryId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "categories",
@@ -26,6 +27,13 @@ const _Schema = new mongoose.Schema(
         images: {
             type: Array
         },
+        brand: String,
+        stock: Number,
+        variants: [{
+            color: String,
+            size: String,
+            quantity: Number
+        }]
     },
     {
         timestamps: true, // tự động tạo createdAt và updatedAt

@@ -176,9 +176,9 @@ module.exports.CreateOrder = async (req, res) => {
     const response = new BaseResponse();
     try {
         const newOrder = req.body;
-    
 
-     
+
+
 
         const result = await orderModel.create(newOrder);
         if (!result) {
@@ -245,6 +245,7 @@ module.exports.CreateOrder_UploadMulti = async (req, res) => {
         // Chuyển ObjectId
         const _userId = userId ? new mongoose.Types.ObjectId(userId) : null;
         const parsedItems = _items.map(item => ({
+            id: item.id,
             productId: item.productId ? new mongoose.Types.ObjectId(item.productId) : null,
             price: item.price,
             quantity: item.quantity,
@@ -426,9 +427,15 @@ module.exports.UpdateOrder_UploadMulti = async (req, res) => {
         } catch (error) {
             _items = []
         }
-
+        const parsedItems = _items.map(item => ({
+            id: item.id,
+            productId: item.productId ? new mongoose.Types.ObjectId(item.productId) : null,
+            price: item.price,
+            quantity: item.quantity,
+            selectedVariant: item.selectedVariant || { color: "", size: "" }
+        }));
         var updateData = {
-            userId: userId ? new ObjectId(userId) : null, totalAmount, status, shippingAddress, paymentMethod, description, paymentStatus
+            userId: userId ? new ObjectId(userId) : null, totalAmount, status, shippingAddress, paymentMethod, description, paymentStatus, items: parsedItems
         }
 
         //Xư lý xóa ảnh deleteImages

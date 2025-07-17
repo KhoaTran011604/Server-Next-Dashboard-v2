@@ -30,6 +30,7 @@ const _Schema = new mongoose.Schema(
         brand: String,
         stock: Number,
         variants: [{
+            id: String,
             color: String,
             size: String,
             quantity: Number

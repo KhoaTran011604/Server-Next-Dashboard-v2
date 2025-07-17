@@ -85,7 +85,7 @@ module.exports.GetAllProductFK = async (req, res) => {
 
     // Truy vấn dữ liệu có phân trang và sắp xếp
     const data = await productModel
-      .find()
+      .find({}, "_id name price variants")
       .sort(sortOptions); // Áp dụng sắp xếp
 
 

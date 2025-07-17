@@ -132,7 +132,7 @@ module.exports.CreateUser_UploadMulti = async (req, res) => {
             fullName, email, password, phone, address, role, status, images: []
         }
         const user = await userModel.findOne({ email: email });
-     
+
 
         if (user) {
             response.success = false
@@ -140,7 +140,7 @@ module.exports.CreateUser_UploadMulti = async (req, res) => {
             return res.json(response);
         } else {
             const hashPassword = bcrypt.hashSync(password, 10);
-      
+
             newData.password = hashPassword
         }
         var imagePaths = []
@@ -286,3 +286,47 @@ module.exports.DeleteUser = async (req, res) => {
         res.status(500).json(response);
     }
 };
+
+
+module.exports.UserChangePassword = async (req, res) => {
+    const response = new BaseResponse();
+    try {
+        const { id } = req.params;
+        const { password } = req.body
+
+        const hashPassword = bcrypt.hashSync(password, 10);
+
+        const result = await userModel.findByIdAndUpdate(id, { password: hashPassword }, { new: true });
+        if (!result) return res.json({ success: false, message: "User not found" });
+
+        response.success = true;
+        response.data = result._id;
+        res.json(response);
+    } catch (error) {
+        response.success = false;
+        response.message = error.toString();
+        res.status(500).json(response);
+    }
+};
+
+module.exports.UserChangeStatus = async (req, res) => {
+    const response = new BaseResponse();
+    try {
+        const { id } = req.params;
+
+
+        const result = await userModel.findByIdAndUpdate(id, req.body, { new: true });
+        if (!result) return res.json({ success: false, message: "User not found" });
+
+        response.success = true;
+        response.data = result._id;
+        res.json(response);
+    } catch (error) {
+        response.success = false;
+        response.message = error.toString();
+        res.status(500).json(response);
+    }
+};
+
+
+

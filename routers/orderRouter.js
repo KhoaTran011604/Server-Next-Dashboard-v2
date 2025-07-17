@@ -1,5 +1,6 @@
 const { Router } = require("express");
-const upload = require("../middleware/tmp/uploadMiddleware");
+//const upload = require("../middleware/tmp/uploadMiddleware");
+const upload = require("../middleware/tmp/uploadCloudinaryMiddleware");
 const {
     GetAllOrder,
     GetAllOrderFK,

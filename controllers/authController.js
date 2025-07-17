@@ -323,56 +323,6 @@ exports.AuthVertify = (req, res) => {
 };
 
 
-// exports.VerifyTokenAPI = (req, res) => {
-//   let response = new BaseResponse();
-//   const authHeader = req.headers.authorization;
-//   const token = authHeader && authHeader.split(" ")[1]; // Format: Bearer <token>
-
-//   if (!token) return res.status(401).json({ ...response, message: "No token provided" });
-
-//   jwt.verify(token, accessTokenSecret, (err, decoded) => {
-//     if (err) {
-//       // Nếu token hết hạn
-//       if (err.name === "TokenExpiredError") {
-//         // Lấy refreshToken từ header hoặc cookie (tùy bạn setup)
-//         const refreshToken = req.headers["x-refresh-token"];
-//         if (!refreshToken) {
-//           return res.status(401).json({ ...response, message: "Access token expired. No refresh token provided" });
-//         }
-
-//         // Xác minh refreshToken
-//         jwt.verify(refreshToken, refreshTokenSecret, (refreshErr, refreshDecoded) => {
-//           if (refreshErr) {
-//             return res.status(403).json({ ...response, message: "Invalid refresh token" });
-//           }
-
-//           // ✅ Cấp mới accessToken
-//           const newAccessToken = jwt.sign({ id: refreshDecoded.id }, accessTokenSecret, {
-//             expiresIn: "15m", // hoặc thời gian bạn muốn
-//           });
-
-//           response.success = true;
-//           response.message = "Access token refreshed";
-//           response.data = {
-//             accessToken: newAccessToken,
-//             user: refreshDecoded,
-//           };
-//           return res.json(response);
-//         });
-
-//       } else {
-//         return res.status(403).json({ ...response, message: "Invalid token" });
-//       }
-//     } else {
-//       // ✅ Token hợp lệ
-//       req.user = decoded;
-//       response.success = true;
-//       response.data = decoded;
-//       return res.json(response);
-//     }
-//   });
-// };
-
 
 exports.VerifyTokenMiddleware = (req, res, next) => {
   let response = new BaseResponse();

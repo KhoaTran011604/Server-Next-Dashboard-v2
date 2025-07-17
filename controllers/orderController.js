@@ -4,7 +4,20 @@ const fs = require('fs');
 const path = require('path');
 const orderModel = require("../models/orderModel");
 const BaseResponse = require("./BaseResponse");
+const { uploadCloudinaryMultipleImages } = require("./uploadCloudinaryController");
 const ObjectId = require('mongoose').Types.ObjectId;
+
+
+const cloudinary = require("cloudinary").v2;
+
+//const dotenv = require("dotenv");
+//dotenv.config();
+
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 module.exports.GetAllOrder = async (req, res) => {
     const response = new BaseResponse();
@@ -253,18 +266,41 @@ module.exports.CreateOrder_UploadMulti = async (req, res) => {
         }));
 
         // Xử lý file upload
-        let fileAttachments = [];
+        let imagePaths = [];
         if (req.files && req.files.length > 0) {
-            fileAttachments = req.files.map((file, index) => ({
-                imageAbsolutePath: `${req.protocol}://${req.get("host")}/uploads/${file.filename}`,
-                fileName: file.filename,
-                keyToDelete: path.join(__dirname, "..", file.path),
+            // imagePaths = req.files.map((file, index) => ({
+            //     imageAbsolutePath: `${req.protocol}://${req.get("host")}/uploads/${file.filename}`,
+            //     fileName: file.filename,
+            //     keyToDelete: path.join(__dirname, "..", file.path),
+            //     imageBase64String: "",
+            //     imageFile: null,
+            //     isNewUpload: false,
+            //     displayOrder: index
+            // }));
+            const files = req.files;
+            let uploadResults = [];
+
+            for (const file of files) {
+                const result = await cloudinary.uploader.upload(file.path, {
+                    folder: "my_upload",//"uploads", // Thư mục trên Cloudinary
+                    quality: "auto",
+                });
+
+                uploadResults.push(result);
+                fs.unlinkSync(file.path); // Xóa file sau khi upload
+            }
+            var dataImages = uploadResults?.length > 0 ? uploadResults.map((item, index) => ({
+                imageAbsolutePath: item.secure_url,
+                fileName: `${item.original_filename}.${item.format}`,
+                keyToDelete: item.public_id,
                 imageBase64String: "",
                 imageFile: null,
                 isNewUpload: false,
                 displayOrder: index
-            }));
+            })) : []
+            imagePaths = dataImages
         }
+
 
         const newOrder = {
             userId: _userId,
@@ -274,7 +310,7 @@ module.exports.CreateOrder_UploadMulti = async (req, res) => {
             shippingAddress,
             paymentMethod,
             paymentStatus,
-            images: fileAttachments
+            images: imagePaths
         };
 
         const result = await orderModel.create(newOrder);
@@ -445,16 +481,40 @@ module.exports.UpdateOrder_UploadMulti = async (req, res) => {
 
         //
         if (req.files && req.files.length > 0) {//Có upload mới
-            imagePaths = req.files.map((file, index) => ({
-                imageAbsolutePath: `${req.protocol}://${req.get("host")}/uploads/${file.filename}`,
-                fileName: file.filename,
-                keyToDelete: path.join(__dirname, "..", file.path),
+            // imagePaths = req.files.map((file, index) => ({
+            //     imageAbsolutePath: `${req.protocol}://${req.get("host")}/uploads/${file.filename}`,
+            //     fileName: file.filename,
+            //     keyToDelete: path.join(__dirname, "..", file.path),
+            //     imageBase64String: "",
+            //     imageFile: null,
+            //     isNewUpload: false,
+            //     displayOrder: index
+
+            // }));
+
+            const files = req.files;
+            let uploadResults = [];
+
+            for (const file of files) {
+                const result = await cloudinary.uploader.upload(file.path, {
+                    folder: "my_upload",//"uploads", // Thư mục trên Cloudinary
+                    quality: "auto",
+                });
+
+                uploadResults.push(result);
+                fs.unlinkSync(file.path); // Xóa file sau khi upload
+            }
+            var dataImages = uploadResults?.length > 0 ? uploadResults.map((item, index) => ({
+                imageAbsolutePath: item.secure_url,
+                fileName: `${item.original_filename}.${item.format}`,
+                keyToDelete: item.public_id,
                 imageBase64String: "",
                 imageFile: null,
                 isNewUpload: false,
                 displayOrder: index
+            })) : []
+            imagePaths = dataImages
 
-            }));
 
             imagePaths_v2 = [..._oldImages, ...imagePaths];
         } else {//Không upload ảnh
@@ -510,4 +570,26 @@ module.exports.DeleteOrder = async (req, res) => {
         response.message = error.toString();
         res.status(500).json(response);
     }
+};
+function filterRemainingImages(oldImages, deleteImages, key = "id") {
+    return oldImages.filter(item => !deleteImages.some(del => del[key] === item[key]));
+}
+
+const deleteImageFunction = (relativePath) => {//keyToDelete
+
+    fs.unlink(relativePath, (err) => {
+        if (err) {
+            return ({
+                succsess: false,
+                data: null,
+                message: "Lỗi xóa ảnh"
+            })
+        } else {
+            return ({
+                succsess: true,
+                data: null,
+                message: "Ảnh đã được xóa thành công!"
+            })
+        }
+    });
 };

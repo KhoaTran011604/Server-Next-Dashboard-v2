@@ -14,7 +14,9 @@ const userRouter = require("./routers/userRouter");
 const orderRouter = require("./routers/orderRouter");
 const reviewRouter = require("./routers/reviewRouter");
 const cartRouter = require("./routers/cartRouter");
+const uploadCloudinaryRoter = require("./routers/uploadCloudinaryRoter");
 const { VerifyTokenMiddleware } = require('./controllers/authController')
+
 
 
 
@@ -27,6 +29,11 @@ app.use(cors())
 
 
 app.use('/api/todo', VerifyTokenMiddleware); // chỉ áp dụng với /api/todo
+app.use('/api/product', VerifyTokenMiddleware);
+app.use('/api/category', VerifyTokenMiddleware);
+app.use('/api/order', VerifyTokenMiddleware);
+app.use('/api/review', VerifyTokenMiddleware);
+app.use('/api/user', VerifyTokenMiddleware);
 
 //require("./helpers/cronJobs");
 
@@ -45,6 +52,7 @@ app.use(userRouter);
 app.use(orderRouter);
 app.use(reviewRouter);
 app.use(cartRouter);
+app.use(uploadCloudinaryRoter);
 app.use(authRouter)
 
 app.get("/", (req, res) => res.json({ response: "hello" }))

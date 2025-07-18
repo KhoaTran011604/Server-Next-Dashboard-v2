@@ -277,28 +277,30 @@ module.exports.CreateOrder_UploadMulti = async (req, res) => {
             //     isNewUpload: false,
             //     displayOrder: index
             // }));
-            const files = req.files;
-            let uploadResults = [];
 
-            for (const file of files) {
-                const result = await cloudinary.uploader.upload(file.path, {
-                    folder: "my_upload",//"uploads", // Thư mục trên Cloudinary
-                    quality: "auto",
-                });
 
-                uploadResults.push(result);
-                fs.unlinkSync(file.path); // Xóa file sau khi upload
-            }
-            var dataImages = uploadResults?.length > 0 ? uploadResults.map((item, index) => ({
-                imageAbsolutePath: item.secure_url,
-                fileName: `${item.original_filename}.${item.format}`,
-                keyToDelete: item.public_id,
-                imageBase64String: "",
-                imageFile: null,
-                isNewUpload: false,
-                displayOrder: index
-            })) : []
-            imagePaths = dataImages
+            // const files = req.files;
+            // let uploadResults = [];
+
+            // for (const file of files) {
+            //     const result = await cloudinary.uploader.upload(file.path, {
+            //         folder: "my_upload",//"uploads", // Thư mục trên Cloudinary
+            //         quality: "auto",
+            //     });
+
+            //     uploadResults.push(result);
+            //     fs.unlinkSync(file.path); // Xóa file sau khi upload
+            // }
+            // var dataImages = uploadResults?.length > 0 ? uploadResults.map((item, index) => ({
+            //     imageAbsolutePath: item.secure_url,
+            //     fileName: `${item.original_filename}.${item.format}`,
+            //     keyToDelete: item.public_id,
+            //     imageBase64String: "",
+            //     imageFile: null,
+            //     isNewUpload: false,
+            //     displayOrder: index
+            // })) : []
+            imagePaths = await this.uploadCloudinaryFn(req.files)
         }
 
 
@@ -492,28 +494,28 @@ module.exports.UpdateOrder_UploadMulti = async (req, res) => {
 
             // }));
 
-            const files = req.files;
-            let uploadResults = [];
+            // const files = req.files;
+            // let uploadResults = [];
 
-            for (const file of files) {
-                const result = await cloudinary.uploader.upload(file.path, {
-                    folder: "my_upload",//"uploads", // Thư mục trên Cloudinary
-                    quality: "auto",
-                });
+            // for (const file of files) {
+            //     const result = await cloudinary.uploader.upload(file.path, {
+            //         folder: "my_upload",//"uploads", // Thư mục trên Cloudinary
+            //         quality: "auto",
+            //     });
 
-                uploadResults.push(result);
-                fs.unlinkSync(file.path); // Xóa file sau khi upload
-            }
-            var dataImages = uploadResults?.length > 0 ? uploadResults.map((item, index) => ({
-                imageAbsolutePath: item.secure_url,
-                fileName: `${item.original_filename}.${item.format}`,
-                keyToDelete: item.public_id,
-                imageBase64String: "",
-                imageFile: null,
-                isNewUpload: false,
-                displayOrder: index
-            })) : []
-            imagePaths = dataImages
+            //     uploadResults.push(result);
+            //     fs.unlinkSync(file.path); // Xóa file sau khi upload
+            // }
+            // var dataImages = uploadResults?.length > 0 ? uploadResults.map((item, index) => ({
+            //     imageAbsolutePath: item.secure_url,
+            //     fileName: `${item.original_filename}.${item.format}`,
+            //     keyToDelete: item.public_id,
+            //     imageBase64String: "",
+            //     imageFile: null,
+            //     isNewUpload: false,
+            //     displayOrder: index
+            // })) : []
+            imagePaths = await this.uploadCloudinaryFn(req.files)
 
 
             imagePaths_v2 = [..._oldImages, ...imagePaths];
@@ -593,3 +595,30 @@ const deleteImageFunction = (relativePath) => {//keyToDelete
         }
     });
 };
+
+
+module.exports.uploadCloudinaryFn = async (files) => {
+    let uploadResults = [];
+
+    for (const file of files) {
+        const result = await cloudinary.uploader.upload(file.path, {
+            folder: "my_upload",//"uploads", // Thư mục trên Cloudinary
+            quality: "auto",
+        });
+
+        uploadResults.push(result);
+        fs.unlinkSync(file.path); // Xóa file sau khi upload
+    }
+    var dataImages = uploadResults?.length > 0 ? uploadResults.map((item, index) => ({
+        imageAbsolutePath: item.secure_url,
+        fileName: `${item.original_filename}.${item.format}`,
+        keyToDelete: item.public_id,
+        imageBase64String: "",
+        imageFile: null,
+        isNewUpload: false,
+        displayOrder: index
+    })) : []
+    return dataImages
+}
+
+

@@ -4,6 +4,7 @@ const path = require('path');
 const productModel = require("../models/productModel");
 const BaseResponse = require('./BaseResponse');
 const xlsx = require("xlsx");
+const { uploadCloudinaryFn } = require('./orderController');
 const ObjectId = require('mongoose').Types.ObjectId;
 
 
@@ -273,16 +274,17 @@ module.exports.CreateProduct_UploadMulti = async (req, res) => {
     var imagePaths = []
 
     if (req.files && req.files.length > 0) {
-      imagePaths = req.files.map((file, index) => ({
-        imageAbsolutePath: `${req.protocol}://${req.get("host")}/uploads/${file.filename}`,
-        fileName: file.filename,
-        keyToDelete: path.join(__dirname, "..", file.path),
-        imageBase64String: "",
-        imageFile: null,
-        isNewUpload: false,
-        displayOrder: index
+      // imagePaths = req.files.map((file, index) => ({
+      //   imageAbsolutePath: `${req.protocol}://${req.get("host")}/uploads/${file.filename}`,
+      //   fileName: file.filename,
+      //   keyToDelete: path.join(__dirname, "..", file.path),
+      //   imageBase64String: "",
+      //   imageFile: null,
+      //   isNewUpload: false,
+      //   displayOrder: index
 
-      }));
+      // }));
+      imagePaths = await uploadCloudinaryFn(req.files)
 
     }
 
@@ -349,16 +351,17 @@ module.exports.UpdateProduct_UploadMulti = async (req, res) => {
 
     //
     if (req.files && req.files.length > 0) {//Có upload mới
-      imagePaths = req.files.map((file, index) => ({
-        imageAbsolutePath: `${req.protocol}://${req.get("host")}/uploads/${file.filename}`,
-        fileName: file.filename,
-        keyToDelete: path.join(__dirname, "..", file.path),
-        imageBase64String: "",
-        imageFile: null,
-        isNewUpload: false,
-        displayOrder: index
+      // imagePaths = req.files.map((file, index) => ({
+      //   imageAbsolutePath: `${req.protocol}://${req.get("host")}/uploads/${file.filename}`,
+      //   fileName: file.filename,
+      //   keyToDelete: path.join(__dirname, "..", file.path),
+      //   imageBase64String: "",
+      //   imageFile: null,
+      //   isNewUpload: false,
+      //   displayOrder: index
 
-      }));
+      // }));
+      imagePaths = await uploadCloudinaryFn(req.files)
 
       imagePaths_v2 = [..._oldImages, ...imagePaths];
     } else {//Không upload ảnh

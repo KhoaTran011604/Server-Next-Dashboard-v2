@@ -2,6 +2,8 @@ const path = require("path");
 const bcrypt = require('bcrypt');
 const userModel = require("../models/userModel");
 const BaseResponse = require("./BaseResponse");
+const fs = require('fs');
+const { uploadCloudinaryFn } = require("./orderController");
 
 module.exports.GetAllUser = async (req, res) => {
     const response = new BaseResponse();
@@ -145,19 +147,20 @@ module.exports.CreateUser_UploadMulti = async (req, res) => {
         }
         var imagePaths = []
 
-        if (req.files && req.files.length > 0) {
-            imagePaths = req.files.map((file, index) => ({
-                imageAbsolutePath: `${req.protocol}://${req.get("host")}/uploads/${file.filename}`,
-                fileName: file.filename,
-                keyToDelete: path.join(__dirname, "..", file.path),
-                imageBase64String: "",
-                imageFile: null,
-                isNewUpload: false,
-                displayOrder: index
+        // if (req.files && req.files.length > 0) {
+        //     imagePaths = req.files.map((file, index) => ({
+        //         imageAbsolutePath: `${req.protocol}://${req.get("host")}/uploads/${file.filename}`,
+        //         fileName: file.filename,
+        //         keyToDelete: path.join(__dirname, "..", file.path),
+        //         imageBase64String: "",
+        //         imageFile: null,
+        //         isNewUpload: false,
+        //         displayOrder: index
 
-            }));
+        //     }));
 
-        }
+        // }
+        imagePaths = await uploadCloudinaryFn(req.files)
 
         newData.images = imagePaths;
 
@@ -226,16 +229,17 @@ module.exports.UpdateUser_UploadMulti = async (req, res) => {
 
         //
         if (req.files && req.files.length > 0) {//Có upload mới
-            imagePaths = req.files.map((file, index) => ({
-                imageAbsolutePath: `${req.protocol}://${req.get("host")}/uploads/${file.filename}`,
-                fileName: file.filename,
-                keyToDelete: path.join(__dirname, "..", file.path),
-                imageBase64String: "",
-                imageFile: null,
-                isNewUpload: false,
-                displayOrder: index
+            // imagePaths = req.files.map((file, index) => ({
+            //     imageAbsolutePath: `${req.protocol}://${req.get("host")}/uploads/${file.filename}`,
+            //     fileName: file.filename,
+            //     keyToDelete: path.join(__dirname, "..", file.path),
+            //     imageBase64String: "",
+            //     imageFile: null,
+            //     isNewUpload: false,
+            //     displayOrder: index
 
-            }));
+            // }));
+            imagePaths = await uploadCloudinaryFn(req.files)
 
             imagePaths_v2 = [..._oldImages, ...imagePaths];
         } else {//Không upload ảnh
@@ -326,6 +330,29 @@ module.exports.UserChangeStatus = async (req, res) => {
         response.message = error.toString();
         res.status(500).json(response);
     }
+};
+
+function filterRemainingImages(oldImages, deleteImages, key = "id") {
+    return oldImages.filter(item => !deleteImages.some(del => del[key] === item[key]));
+}
+
+const deleteImageFunction = (relativePath) => {//keyToDelete
+
+    fs.unlink(relativePath, (err) => {
+        if (err) {
+            return ({
+                succsess: false,
+                data: null,
+                message: "Lỗi xóa ảnh"
+            })
+        } else {
+            return ({
+                succsess: true,
+                data: null,
+                message: "Ảnh đã được xóa thành công!"
+            })
+        }
+    });
 };
 
 

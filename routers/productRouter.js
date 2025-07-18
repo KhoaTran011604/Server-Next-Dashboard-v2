@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const { GetAllProduct, SeachProduct, CreateProduct, UpdateProduct, DeleteProduct, CreateProduct_UploadMulti, UpdateProduct_UploadMulti, ImportProducts, ExportProducts, ExportWithFilter, ExportAllProduct, GetAllProductFK } = require('../controllers/productController');
-const upload = require("../middleware/tmp/uploadMiddleware");
+//const upload = require("../middleware/tmp/uploadMiddleware");
+const upload = require("../middleware/tmp/uploadCloudinaryMiddleware");
 const uploadExcelFile = require("../middleware/tmp/uploadExcelFileMiddleware");
 
 const router = Router();

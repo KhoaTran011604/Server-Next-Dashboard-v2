@@ -8,6 +8,7 @@ const orderSchema = new mongoose.Schema({
         price: Number,
         quantity: Number,
         selectedVariant: {
+            id: String,
             color: String,
             size: String
         }

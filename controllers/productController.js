@@ -628,7 +628,7 @@ const deleteImageFunction = (relativePath) => {//keyToDelete
 module.exports.FetchDataProduct = async (req, res) => {
   const response = new BaseResponse();
   try {
-
+    const filter = {}
     const data = await productModel
       .aggregate([
         { $match: filter },

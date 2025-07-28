@@ -28,12 +28,12 @@ app.use(cors())
 
 
 
-app.use('/api/todo', VerifyTokenMiddleware); // chỉ áp dụng với /api/todo
-app.use('/api/product', VerifyTokenMiddleware);
-app.use('/api/category', VerifyTokenMiddleware);
-app.use('/api/order', VerifyTokenMiddleware);
-app.use('/api/review', VerifyTokenMiddleware);
-app.use('/api/user', VerifyTokenMiddleware);
+//app.use('/api/todo', VerifyTokenMiddleware); // chỉ áp dụng với /api/todo
+// app.use('/api/product', VerifyTokenMiddleware);
+// app.use('/api/category', VerifyTokenMiddleware);
+// app.use('/api/order', VerifyTokenMiddleware);
+// app.use('/api/review', VerifyTokenMiddleware);
+// app.use('/api/user', VerifyTokenMiddleware);
 
 //require("./helpers/cronJobs");
 

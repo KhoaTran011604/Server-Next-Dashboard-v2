@@ -625,6 +625,56 @@ const deleteImageFunction = (relativePath) => {//keyToDelete
 };
 
 
+module.exports.FetchDataProduct = async (req, res) => {
+  const response = new BaseResponse();
+  try {
+
+    const data = await productModel
+      .aggregate([
+        { $match: filter },
+        {
+          $lookup: {
+            from: "categories",
+            localField: "categoryId",
+            foreignField: "_id",
+            as: "category",
+          },
+        },
+        { $unwind: { path: "$category", preserveNullAndEmptyArrays: true } }, // Giải nén category
+        {
+          $project: {
+            name: 1,
+            description: 1,
+            price: 1,
+            status: 1,
+            images: 1,
+            createdAt: 1,
+            categoryId: 1,
+            categoryName: { $ifNull: ["$category.name", ""] }, // Đổi tên name thành categoryName và check null thì trả về ""
+          },
+        },
+
+      ]);
+
+    // Trả về kết quả cho frontend
+    response.success = true;
+    response.data = data;
+    response.metaData = {
+      totalRecords: 0,
+      totalPages: 0,
+      currentPage: 1,
+      pageSize: 999999,
+    };
+
+    res.json(response);
+  } catch (error) {
+    response.success = false;
+    response.message = error.toString();
+    res.status(500).json(response);
+  }
+};
+
+
 
 
 

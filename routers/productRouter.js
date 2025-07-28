@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const { GetAllProduct, SeachProduct, CreateProduct, UpdateProduct, DeleteProduct, CreateProduct_UploadMulti, UpdateProduct_UploadMulti, ImportProducts, ExportProducts, ExportWithFilter, ExportAllProduct, GetAllProductFK } = require('../controllers/productController');
+const { GetAllProduct, SeachProduct, CreateProduct, UpdateProduct, DeleteProduct, CreateProduct_UploadMulti, UpdateProduct_UploadMulti, ImportProducts, ExportProducts, ExportWithFilter, ExportAllProduct, GetAllProductFK, FetchDataProduct } = require('../controllers/productController');
 //const upload = require("../middleware/tmp/uploadMiddleware");
 const upload = require("../middleware/tmp/uploadCloudinaryMiddleware");
 const uploadExcelFile = require("../middleware/tmp/uploadExcelFileMiddleware");
@@ -10,7 +10,7 @@ const router = Router();
 
 
 //files là thuộc tính lưu file đơn or list file của formData FE gửi về
-
+router.get("/api/product/fetch-data", FetchDataProduct)
 router.post("/api/product/get-all", GetAllProduct)
 router.post("/api/product/get-all-fk", GetAllProductFK)
 router.post("/api/product/search/:id", SeachProduct)
